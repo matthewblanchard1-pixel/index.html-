@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ratio Ridge: Math Escape Room</title>
+<style>
+:root{--navy:#17324d;--blue:#2d5f8b;--gold:#e9b949;--paper:#f5f7fa;--ink:#17212b;--green:#237a57;--red:#a52a2a}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(135deg,#e9eff5,#f8f5ed);font-family:Arial,Helvetica,sans-serif;color:var(--ink);line-height:1.5}
+header{background:var(--navy);color:white;padding:24px 16px;text-align:center;border-bottom:5px solid var(--gold)}
+header h1{margin:0;font-size:clamp(1.6rem,4vw,2.5rem)} header p{margin:8px auto 0;max-width:760px}
+main{max-width:900px;margin:24px auto;padding:0 16px 48px}
+.panel{background:white;border-radius:16px;padding:clamp(18px,4vw,30px);box-shadow:0 8px 26px #17324d16;margin-bottom:18px}
+.kicker{font-size:.82rem;letter-spacing:.09em;text-transform:uppercase;color:var(--blue);font-weight:700}
+h2{margin:.2rem 0 .6rem;color:var(--navy)} .story{font-size:1.05rem}
+.progress-wrap{height:10px;background:#dce4ec;border-radius:99px;overflow:hidden;margin:14px 0 8px}.progress{height:100%;background:var(--gold);width:0;transition:width .25s}
+.meta{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;color:#52606d;font-size:.9rem}
+.problem{border:1px solid #dce4ec;border-radius:12px;padding:14px;margin:12px 0;background:#fbfcfd}
+.problem label{display:block;font-weight:700;margin-bottom:8px}
+input[type=text],input[type=number]{width:100%;max-width:340px;padding:12px;border:2px solid #b9c6d2;border-radius:8px;font-size:1rem}
+input:focus{outline:3px solid #dcecff;border-color:var(--blue)}
+button{border:0;border-radius:9px;padding:12px 18px;font-size:1rem;font-weight:700;cursor:pointer;background:var(--blue);color:white}
+button:hover{filter:brightness(1.08)} button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#e8edf2;color:var(--navy)} .gold{background:var(--gold);color:#2a2a2a}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.feedback{min-height:28px;font-weight:700;margin-top:12px}.feedback.good{color:var(--green)}.feedback.bad{color:var(--red)}
+.hint{font-size:.92rem;color:#52606d}.hidden{display:none!important}
+.badge{display:inline-block;background:#e8eef5;color:var(--navy);border-radius:99px;padding:4px 10px;font-size:.84rem;font-weight:700}
+ul{padding-left:22px}.finalcode{font-size:1.2rem;font-weight:700;letter-spacing:.04em}
+footer{text-align:center;color:#637181;font-size:.85rem;padding:0 16px 26px}
+@media print{header{background:white;color:black;border-bottom:2px solid black}.panel{box-shadow:none;border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<header>
+  <div style="font-size:2rem" aria-hidden="true">🔐</div>
+  <h1>THE LOCKDOWN AT RATIO RIDGE</h1>
+  <p>A 6th Grade Math Escape Room · Unit Rates & Percentages</p>
+</header>
+<main>
+  <section class="panel" id="welcome">
+    <div class="kicker">Top secret mission file</div>
+    <h2>Welcome, Agent!</h2>
+    <p class="story">The town of Ratio Ridge is trapped inside the Math Vault. Six security stages stand between your team and the exit. Solve the math, enter the correct stage code, and unlock the next mission.</p>
+    <p><span class="badge">Estimated time: 120 minutes</span> <span class="badge">6 stages + final vault</span></p>
+    <p><strong>Rules</strong></p>
+    <ul>
+      <li>Show your work on paper before entering answers.</li>
+      <li>Each stage has eight questions. Your answers create a code.</li>
+      <li>You cannot advance until the stage code is correct.</li>
+      <li>Use units and money amounts carefully. Round only when asked.</li>
+    </ul>
+    <label for="studentName"><strong>Agent name (optional)</strong></label><br>
+    <input id="studentName" type="text" maxlength="60" placeholder="Enter your name">
+    <div class="actions"><button class="gold" id="startBtn">Start Mission 1 →</button></div>
+  </section>
+
+  <section class="panel hidden" id="game" aria-live="polite">
+    <div class="meta"><span id="stageCounter">Stage 1 of 6</span><span id="timer">Target time: 120 minutes</span></div>
+    <div class="progress-wrap"><div class="progress" id="progress"></div></div>
+    <div class="kicker" id="stageKicker">Mission</div>
+    <h2 id="stageTitle"></h2>
+    <p class="story" id="stageIntro"></p>
+    <div id="questions"></div>
+    <div class="problem">
+      <label for="codeInput" id="codeLabel">Enter the stage code</label>
+      <input id="codeInput" type="text" autocomplete="off" placeholder="Enter code here">
+      <p class="hint" id="codeHint"></p>
+      <div class="actions">
+        <button id="checkBtn">Check Code</button>
+        <button id="hintBtn" class="secondary">Show a hint</button>
+      </div>
+      <div class="feedback" id="feedback" role="status"></div>
+    </div>
+    <div class="actions">
+      <button id="nextBtn" class="gold" disabled>Unlock Next Stage →</button>
+      <button id="resetBtn" class="secondary">Restart</button>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="final">
+    <div class="kicker">Vault unlocked</div>
+    <h2>🎉 You escaped Ratio Ridge!</h2>
+    <p class="story" id="congrats"></p>
+    <h3>Final Vault Challenge</h3>
+    <div class="problem">
+      <label>1. Store A sells 6 snack packs for $15. Store B sells 10 for $23. Which store has the lower cost per pack? Enter A or B.</label>
+      <input id="final1" type="text" placeholder="A or B">
+    </div>
+    <div class="problem">
+      <label>2. The town has $250 and spends 28% on batteries. How much money remains? Enter the number only.</label>
+      <input id="final2" type="number" placeholder="Dollars remaining">
+    </div>
+    <button id="finalCheck" class="gold">Check Final Challenge</button>
+    <div class="feedback" id="finalFeedback" role="status"></div>
+    <div id="completion" class="hidden">
+      <h3>Mission complete, Agent!</h3>
+      <p>You completed all six stages (48 questions) and the final vault challenge.</p>
+      <p><strong>Reflection:</strong> What is one strategy you used to solve a unit-rate or percentage problem?</p>
+      <textarea id="reflection" rows="3" style="width:100%;max-width:650px;padding:12px;border:2px solid #b9c6d2;border-radius:8px;font:inherit" placeholder="Write your reflection here..."></textarea>
+      <div class="actions"><button id="printBtn" class="secondary">Print completion summary</button><button id="restartFinal" class="secondary">Restart from beginning</button></div>
+    </div>
+  </section>
+</main>
+<footer>Ratio Ridge Math Escape Room · Grade 6 · Work carefully and show your reasoning.</footer>
+<script>
+const stages = [
+ {title:"Mission 1: The Supply Shed", intro:"The emergency team needs supplies. Calculate each unit rate to open the supply crates.",
+  qs:[
+   ["A box of 8 granola bars costs $12. What is the cost per bar, in dollars?", "1.5"],
+   ["A hiker walks 15 miles in 3 hours. What is the rate in miles per hour?", "5"],
+   ["A printer makes 42 flyers in 6 minutes. How many flyers per minute?", "7"],
+   ["A 5-pound bag of rice costs $7.50. What is the cost per pound, in dollars?", "1.5"],
+   ["Ten pencils cost $4. What is the cost per pencil, in dollars?", "0.4"],
+   ["A cyclist rides 36 miles in 4 hours. What is the rate in miles per hour?", "9"],
+   ["A machine fills 56 bottles in 7 minutes. How many bottles per minute?", "8"],
+   ["Three movie tickets cost $27. What is the cost per ticket, in dollars?", "9"]
+  ], code:"1.5-5-7-1.5-0.4-9-8-9", hint:"Divide the total amount by the number of units. For example, cost per item = total cost ÷ number of items.", codeHint:"Enter all 8 numerical answers in order, separated by hyphens. Use decimals where needed."},
+ {title:"Mission 2: The Speed Tunnel", intro:"The tunnel doors open only when you calculate all eight unit rates correctly.",
+  qs:[
+   ["A car travels 180 miles in 3 hours. What is its average speed in miles per hour?", "60"],
+   ["Six notebooks cost $9. What is the cost per notebook, in dollars?", "1.5"],
+   ["A faucet fills 24 liters in 4 minutes. How many liters per minute?", "6"],
+   ["A runner completes 2.5 miles in 0.5 hour. What is the speed in miles per hour?", "5"],
+   ["A bus travels 144 miles in 4 hours. What is its average speed in miles per hour?", "36"],
+   ["Twelve oranges cost $6. What is the cost per orange, in dollars?", "0.5"],
+   ["A robot assembles 72 parts in 8 minutes. How many parts per minute?", "9"],
+   ["A boat travels 42 miles in 6 hours. What is its speed in miles per hour?", "7"]
+  ], code:"60-1.5-6-5-36-0.5-9-7", hint:"A unit rate is found by dividing the first quantity by the second. Keep the units in mind.", codeHint:"Enter all 8 numerical answers in order, separated by hyphens."},
+ {title:"Mission 3: The Discount Market", intro:"Emergency supplies are hidden behind percentage locks. Find the discount, sale price, and new price.",
+  qs:[
+   ["A backpack costs $40 and is discounted by 25%. How many dollars are taken off?", "10"],
+   ["A $60 jacket is 10% off. What is the sale price in dollars?", "54"],
+   ["A team has 20 members. If 35% wear blue, how many members wear blue?", "7"],
+   ["A game costs $32. Its price increases by 25%. What is the new price in dollars?", "40"],
+   ["A $50 pair of shoes is discounted by 20%. What is the discount in dollars?", "10"],
+   ["A $80 coat is discounted by 25%. What is the sale price in dollars?", "60"],
+   ["A class has 30 students. If 10% are absent, how many students are absent?", "3"],
+   ["A $24 game increases in price by 50%. What is the new price in dollars?", "36"]
+  ], code:"10-54-7-40-10-60-3-36", hint:"Find a percent by converting it to a decimal and multiplying by the original amount. For a discount, subtract the discount from the original price.", codeHint:"Enter all 8 numerical answers in order, separated by hyphens. Use the discount amount when the question asks how much is taken off."},
+ {title:"Mission 4: The Percent Power Grid", intro:"Restore the grid by finding percentages and converting each problem into a numerical answer.",
+  qs:[
+   ["Find 15% of 80.", "12"],
+   ["What percent of 50 is 20? Enter the number only (do not type %).", "40"],
+   ["A school has 240 students. If 40% ride the bus, how many ride the bus?", "96"],
+   ["Shoes cost $75 and are discounted 20%. What is the discount amount in dollars?", "15"],
+   ["Find 25% of 64.", "16"],
+   ["What is 10% of 350?", "35"],
+   ["A club has 80 members. If 60% attend a meeting, how many attend?", "48"],
+   ["A $120 tablet is discounted by 15%. How many dollars are taken off?", "18"]
+  ], code:"12-40-96-15-16-35-48-18", hint:"Percent means 'out of 100.' Multiply the whole by the percent written as a decimal. For 'what percent,' divide the part by the whole and multiply by 100.", codeHint:"Enter all 8 numerical answers in order, separated by hyphens. For the question asking what percent, enter the number without the percent sign."},
+ {title:"Mission 5: The Supply Train", intro:"The supply train is carrying food and fuel. Calculate each answer to keep the train moving.",
+  qs:[
+   ["Four identical water containers hold 18 liters total. How many liters per container?", "4.5"],
+   ["A train travels 210 miles in 3.5 hours. What is its average speed in miles per hour?", "60"],
+   ["A camp orders 80 meals. If 15% are vegetarian, how many vegetarian meals are needed?", "12"],
+   ["A flashlight costs $24. Its price increases by 12.5%. What is the new price in dollars?", "27"],
+   ["Five bags contain 35 pounds of rice altogether. How many pounds per bag?", "7"],
+   ["A delivery truck travels 126 miles in 3 hours. What is its speed in miles per hour?", "42"],
+   ["A team has 60 water bottles. If 30% are used, how many bottles are used?", "18"],
+   ["A $40 backpack increases in price by 10%. What is the new price in dollars?", "44"]
+  ], code:"4.5-60-12-27-7-42-18-44", hint:"For a unit rate, divide. For a percent increase, find the increase and add it to the original amount.", codeHint:"Enter all 8 numerical answers in order, separated by hyphens."},
+ {title:"Mission 6: The Final Checkpoint", intro:"This is the final security checkpoint. Solve each mixed problem to unlock the vault.",
+  qs:[
+   ["A 12-ounce bottle of juice costs $3. What is the cost per ounce, in dollars?", "0.25"],
+   ["A $90 bicycle helmet is discounted by 30%. What is the sale price in dollars?", "63"],
+   ["A recipe uses 3 cups of flour for 12 muffins. How many cups are needed for 20 muffins at the same rate?", "5"],
+   ["A school club collected $160 and spent 35% on supplies. How many dollars were spent?", "56"],
+   ["Eight folders cost $12. What is the cost per folder, in dollars?", "1.5"],
+   ["A $70 jacket is discounted by 20%. What is the sale price in dollars?", "56"],
+   ["A team has 40 players. If 25% are goalkeepers, how many goalkeepers are there?", "10"],
+   ["A $64 pair of shoes increases in price by 25%. What is the new price in dollars?", "80"]
+  ], code:"0.25-63-5-56-1.5-56-10-80", hint:"For the recipe, find cups per muffin first. For sale prices, subtract the discount from the original price. For increases, add the increase.", codeHint:"Enter all 8 numerical answers in order, separated by hyphens."}
+];
+let current=0, unlocked=false, startTime=null, finishedStages=[];
+const $=id=>document.getElementById(id);
+function show(el){el.classList.remove("hidden")} function hide(el){el.classList.add("hidden")}
+function normalize(s){return String(s).trim().toUpperCase().replace(/\s+/g,"").replace(/,/g,"");}
+function renderStage(){
+ const s=stages[current]; unlocked=false;
+ $("stageCounter").textContent=`Stage ${current+1} of ${stages.length}`;
+ $("progress").style.width=`${(current/stages.length)*100}%`;
+ $("stageKicker").textContent=`Mission ${current+1} · Access restricted`;
+ $("stageTitle").textContent=s.title; $("stageIntro").textContent=s.intro;
+ $("questions").innerHTML="";
+ s.qs.forEach((q,i)=>{const div=document.createElement("div");div.className="problem";const label=document.createElement("label");label.textContent=`${i+1}. ${q[0]}`;div.appendChild(label);const work=document.createElement("p");work.className="hint";work.textContent="Solve on paper. Your code is based on all eight answers.";div.appendChild(work);$("questions").appendChild(div)});
+ $("codeInput").value=""; $("codeInput").disabled=false; $("checkBtn").disabled=false;
+ $("codeHint").textContent=s.codeHint; $("feedback").textContent=""; $("feedback").className="feedback";
+ $("nextBtn").disabled=true; $("nextBtn").textContent=current===stages.length-1?"Enter the Final Vault →":"Unlock Next Stage →";
+ $("hintBtn").textContent="Show a hint"; $("hintBtn").dataset.open="0";
+}
+$("startBtn").addEventListener("click",()=>{startTime=Date.now();hide($("welcome"));show($("game"));renderStage();});
+$("hintBtn").addEventListener("click",()=>{const s=stages[current];$("codeHint").textContent=$("hintBtn").dataset.open==="1"?"Hint hidden. Try solving each question first.":s.hint;$("hintBtn").dataset.open=$("hintBtn").dataset.open==="1"?"0":"1";$("hintBtn").textContent=$("hintBtn").dataset.open==="1"?"Hide hint":"Show a hint";});
+$("checkBtn").addEventListener("click",()=>{
+ const val=normalize($("codeInput").value), s=stages[current];
+ if(!val){$("feedback").textContent="Enter a code before checking."; $("feedback").className="feedback bad";return}
+ if(val===normalize(s.code)){
+  unlocked=true;finishedStages[current]=true;$("feedback").textContent="Correct code! Stage unlocked. You may continue."; $("feedback").className="feedback good";
+  $("nextBtn").disabled=false;$("codeInput").disabled=true;$("checkBtn").disabled=true;
+  $("progress").style.width=`${((current+1)/stages.length)*100}%`;
+ } else {$("feedback").textContent="Not quite. The vault is still locked. Check your calculations and try again."; $("feedback").className="feedback bad";$("codeInput").select();}
+});
+$("codeInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("checkBtn").click()});
+$("nextBtn").addEventListener("click",()=>{
+ if(!unlocked)return;
+ if(current<stages.length-1){current++;renderStage();}
+ else {hide($("game"));show($("final"));$("congrats").textContent=`${$("studentName").value.trim()?$("studentName").value.trim()+", y":"Y"}ou unlocked all six stages. Complete the final challenge to finish the mission.`;}
+});
+$("resetBtn").addEventListener("click",()=>{if(confirm("Restart the escape room from the beginning?"))location.reload()});
+$("finalCheck").addEventListener("click",()=>{
+ const a=normalize($("final1").value), b=normalize($("final2").value);
+ if(a==="B" && (b==="180" || b==="180.0")){$("finalFeedback").textContent="Correct! Both final locks are open."; $("finalFeedback").className="feedback good";show($("completion"));}
+ else {$("finalFeedback").textContent="One or both answers are not correct yet. Hint: compare cost per pack, then subtract 28% of $250 from $250."; $("finalFeedback").className="feedback bad";}
+});
+$("printBtn").addEventListener("click",()=>window.print());
+$("restartFinal").addEventListener("click",()=>location.reload());
+</script>
+</body>
+</html>
